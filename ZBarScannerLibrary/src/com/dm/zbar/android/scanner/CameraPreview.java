@@ -30,7 +30,7 @@ public class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 	private boolean surfaceCreated;
 
 	@SuppressWarnings("deprecation")
-	CameraPreview(Context context) {
+	public CameraPreview(Context context) {
 		super(context);
 		
 		mAutoFocusHandler = new Handler();

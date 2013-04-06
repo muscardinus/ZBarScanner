@@ -29,11 +29,11 @@ public class CameraWrapper {
 	int targetWidth;
 	int targetHeight;
 
-	CameraWrapper(int id) {
+	public CameraWrapper(int id) {
 		this.id = id;
 	}
 
-	boolean open(Activity activity) {
+	public boolean open(Activity activity) {
 		try {
 			// Attempt to get a Camera instance
 			camera = Camera.open(id);
@@ -71,7 +71,7 @@ public class CameraWrapper {
 		}
 	}
 
-	synchronized void release() {
+	public synchronized void release() {
 		// Because the Camera object is a shared resource, it's very
 		// important to release it when the activity is paused.
 		if (camera != null) {
@@ -111,7 +111,7 @@ public class CameraWrapper {
 		}
 	}
 
-	synchronized void setPreviewCallback(PreviewCallback cb) {
+	public synchronized void setPreviewCallback(PreviewCallback cb) {
 		if (camera != null) {
 			camera.setPreviewCallback(cb);
 		}
