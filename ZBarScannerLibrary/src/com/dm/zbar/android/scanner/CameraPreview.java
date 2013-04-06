@@ -5,7 +5,6 @@ import java.io.IOException;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
-import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.os.Build;
@@ -83,6 +82,7 @@ public class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 			} catch (IOException e) {
 				Log.e(TAG, "IOException caused by setPreviewDisplay(null)", e);
 			}
+			oldCamera.cancelAutoFocus();
 		}
 
 		if (camera != null) {

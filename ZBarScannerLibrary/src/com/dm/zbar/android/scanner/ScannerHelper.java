@@ -10,6 +10,10 @@ import android.text.TextUtils;
 
 public class ScannerHelper implements Camera.PreviewCallback {
 
+	static {
+		System.loadLibrary("iconv");
+	}
+
 	public interface ScannerResultListener {
 		public void onResult(String symData, int symType);
 	}
@@ -20,7 +24,7 @@ public class ScannerHelper implements Camera.PreviewCallback {
 
 	public ScannerHelper(int[] scanModes, ScannerResultListener resultListener) {
 		mResultListener = resultListener;
-		
+
 		mScanner = new ImageScanner();
 		mScanner.setConfig(0, Config.X_DENSITY, 3);
 		mScanner.setConfig(0, Config.Y_DENSITY, 3);

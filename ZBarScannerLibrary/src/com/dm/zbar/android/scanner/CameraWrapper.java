@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.CameraInfo;
@@ -286,5 +288,10 @@ public class CameraWrapper {
 		optimizing = false;
 
 		return true;
+	}
+
+	public static boolean isRearCameraAvailable(Context context) {
+		PackageManager pm = context.getPackageManager();
+		return pm.hasSystemFeature(PackageManager.FEATURE_CAMERA);
 	}
 }

@@ -2,7 +2,6 @@ package com.dm.zbar.android.scanner;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 
@@ -15,15 +14,11 @@ public class ZBarScannerActivity extends Activity implements ZBarConstants, Scan
 	private CameraWrapper mCamera;
 	private ScannerHelper mScanner;
 
-	static {
-		System.loadLibrary("iconv");
-	}
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		if (!isCameraAvailable()) {
+		if (!CameraWrapper.isRearCameraAvailable(this)) {
 			// Cancel request if there is no rear-facing camera.
 			cancelRequest();
 			return;
@@ -57,14 +52,8 @@ public class ZBarScannerActivity extends Activity implements ZBarConstants, Scan
 		// Because the Camera object is a shared resource, it's very
 		// important to release it when the activity is paused.
 		mPreview.setCamera(null);
-		mCamera.cancelAutoFocus();
 		mCamera.setPreviewCallback(null);
 		mCamera.release();
-	}
-
-	public boolean isCameraAvailable() {
-		PackageManager pm = getPackageManager();
-		return pm.hasSystemFeature(PackageManager.FEATURE_CAMERA);
 	}
 
 	public void cancelRequest() {
@@ -75,9 +64,8 @@ public class ZBarScannerActivity extends Activity implements ZBarConstants, Scan
 	@Override
 	public void onResult(String symData, int symType) {
 
-		mCamera.cancelAutoFocus();
+		mPreview.setCamera(null);
 		mCamera.setPreviewCallback(null);
-		mCamera.stopPreview();
 
 		if (!TextUtils.isEmpty(symData)) {
 			Intent dataIntent = new Intent();
