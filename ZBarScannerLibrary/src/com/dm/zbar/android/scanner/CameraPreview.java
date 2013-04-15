@@ -31,7 +31,7 @@ public class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 	@SuppressWarnings("deprecation")
 	public CameraPreview(Context context) {
 		super(context);
-		
+
 		mAutoFocusHandler = new Handler();
 
 		mSurfaceView = new SurfaceView(context);
@@ -121,7 +121,9 @@ public class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 		final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
 		setMeasuredDimension(width, height);
 
-		mCamera.setTargetPreviewSize(width * 2, height * 2);
+		if (mCamera != null) {
+			mCamera.setTargetPreviewSize(width * 2, height * 2);
+		}
 	}
 
 	@Override
