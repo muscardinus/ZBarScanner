@@ -7,12 +7,15 @@ import net.sourceforge.zbar.Symbol;
 import net.sourceforge.zbar.SymbolSet;
 import android.hardware.Camera;
 import android.text.TextUtils;
+import android.util.Log;
 
 public class ScannerHelper implements Camera.PreviewCallback {
 
 	static {
 		System.loadLibrary("iconv");
 	}
+
+	private static final String LOG_TAG = "ZBarScanner/ScannerHelper";
 
 	public interface ScannerResultListener {
 		public void onResult(String symData, int symType);
@@ -43,7 +46,14 @@ public class ScannerHelper implements Camera.PreviewCallback {
 	}
 
 	public synchronized void onPreviewFrame(byte[] data, Camera camera) {
-		Camera.Parameters parameters = camera.getParameters();
+		Camera.Parameters parameters;
+		try {
+			parameters = camera.getParameters();
+		} catch (RuntimeException e) {
+			Log.e(LOG_TAG, "Unable to get camera parameters", e);
+			return;
+		}
+
 		Camera.Size size = parameters.getPreviewSize();
 
 		Image barcode = new Image(size.width, size.height, "Y800");
