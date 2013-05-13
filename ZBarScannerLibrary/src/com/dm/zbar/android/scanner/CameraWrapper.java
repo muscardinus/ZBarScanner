@@ -290,6 +290,12 @@ public class CameraWrapper {
 		return true;
 	}
 
+	public static boolean isAnyCameraAvailable(Context context) {
+		PackageManager pm = context.getPackageManager();
+		return pm.hasSystemFeature(PackageManager.FEATURE_CAMERA)
+				|| pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT);
+	}
+
 	public static boolean isRearCameraAvailable(Context context) {
 		PackageManager pm = context.getPackageManager();
 		return pm.hasSystemFeature(PackageManager.FEATURE_CAMERA);
