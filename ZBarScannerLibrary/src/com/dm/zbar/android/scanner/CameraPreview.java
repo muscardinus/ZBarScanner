@@ -2,15 +2,12 @@ package com.dm.zbar.android.scanner;
 
 import java.io.IOException;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.hardware.Camera;
-import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
-import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -50,29 +47,10 @@ public class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 			mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		}
 
-		// Register a OrientationEventListener in order to handle
-		// orientation changes from 90 to 270 degrees and visa-versa.
-		// This is necessary, because in this case, a configuration change
-		// does not happen and so the activity does not restart (which would
-		// normally rotate the camera view).
-
-		OrientationEventListener orientationEventListener = new OrientationEventListener(context,
-				SensorManager.SENSOR_DELAY_NORMAL) {
-
-			@Override
-			public void onOrientationChanged(int _) {
-				if (mCamera != null && mCamera.fixCameraDisplayOrientation((Activity) getContext())) {
-					requestLayout();
-				}
-			}
-		};
-
-		if (orientationEventListener.canDetectOrientation()) {
-			orientationEventListener.enable();
-		}
 	}
 
 	public void setCamera(CameraWrapper camera) {
+
 		final CameraWrapper oldCamera = mCamera;
 
 		if (oldCamera != null) {

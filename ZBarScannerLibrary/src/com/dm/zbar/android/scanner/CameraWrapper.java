@@ -3,7 +3,6 @@ package com.dm.zbar.android.scanner;
 import java.io.IOException;
 import java.util.List;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
@@ -11,10 +10,18 @@ import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
+import android.hardware.SensorManager;
+import android.util.Log;
+import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.WindowManager;
 
 public class CameraWrapper {
+
+	private final String LOG_TAG = "ZBarScanner/CameraPreview";
+
+	private Context appContext;
 
 	int id;
 	private Camera camera;
@@ -25,29 +32,57 @@ public class CameraWrapper {
 	int cameraDisplayOrientation;
 	private int lastRotation = -1;
 
+	private OrientationEventListener orientationEventListener;
+
 	// Needed for preview size optimization
 	private boolean optimizing;
 
 	int targetWidth;
 	int targetHeight;
 
+	private boolean previewStarted;
+
 	public CameraWrapper(int id) {
 		this.id = id;
 	}
 
-	public boolean open(Activity activity) {
+	public boolean open(Context appContext) {
+		this.appContext = appContext;
 		try {
 			// Attempt to get a Camera instance
 			camera = Camera.open(id);
 		} catch (Exception e) {
 			// Camera is not available (in use or does not exist)
+			Log.e(LOG_TAG, "Failed to open camera");
 			return false;
 		}
 
-		fixCameraDisplayOrientation(activity);
+		fixCameraDisplayOrientation();
 
 		if (targetWidth > 0 && targetHeight > 0) {
 			updatePreviewSize();
+		}
+
+		// Register an OrientationEventListener in order to handle
+		// orientation changes from 90 to 270 degrees and visa-versa.
+		// This is necessary, because in this case, a configuration change
+		// does not happen and so the activity does not restart (which would
+		// normally rotate the camera view).
+
+		if (orientationEventListener == null) {
+			orientationEventListener = new OrientationEventListener(appContext, SensorManager.SENSOR_DELAY_NORMAL) {
+
+				@Override
+				public void onOrientationChanged(int _) {
+					synchronized (CameraWrapper.this) {
+						fixCameraDisplayOrientation();
+					}
+				}
+			};
+		}
+
+		if (orientationEventListener.canDetectOrientation()) {
+			orientationEventListener.enable();
 		}
 
 		return true;
@@ -74,6 +109,12 @@ public class CameraWrapper {
 	}
 
 	public synchronized void release() {
+		appContext = null;
+
+		if (orientationEventListener != null) {
+			orientationEventListener.disable();
+		}
+
 		// Because the Camera object is a shared resource, it's very
 		// important to release it when the activity is paused.
 		if (camera != null) {
@@ -84,8 +125,17 @@ public class CameraWrapper {
 	}
 
 	synchronized void startPreview() {
-		if (camera != null) {
-			camera.startPreview();
+		if (!previewStarted) {
+			fixCameraDisplayOrientation();
+			if (camera != null) {
+				previewStarted = true;
+
+				try {
+					camera.startPreview();
+				} catch (RuntimeException e) {
+					Log.e(LOG_TAG, "Failed to start camera preview", e);
+				}
+			}
 		}
 	}
 
@@ -93,6 +143,7 @@ public class CameraWrapper {
 		if (camera != null) {
 			camera.stopPreview();
 		}
+		previewStarted = false;
 	}
 
 	synchronized void setPreviewDisplay(SurfaceHolder holder) throws IOException {
@@ -119,23 +170,23 @@ public class CameraWrapper {
 		}
 	}
 
-	boolean fixCameraDisplayOrientation(Activity activity) {
+	boolean fixCameraDisplayOrientation() {
 		synchronized (this) {
 			if (camera == null) {
 				return false;
 			}
 		}
 
-		int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+		WindowManager wm = (WindowManager) appContext.getSystemService(Context.WINDOW_SERVICE);
+		int rotation = wm.getDefaultDisplay().getRotation();
 		synchronized (this) {
 			if (lastRotation != -1 && rotation == lastRotation) {
 				return false;
 			}
-			lastRotation = rotation;
 		}
 
 		int degrees;
-		switch (lastRotation) {
+		switch (rotation) {
 			case Surface.ROTATION_0:
 				degrees = 0;
 				break;
@@ -169,7 +220,14 @@ public class CameraWrapper {
 
 		synchronized (this) {
 			if (camera != null) {
-				camera.setDisplayOrientation(result);
+				if (!previewStarted) {
+					camera.setDisplayOrientation(result);
+				} else {
+					camera.stopPreview();
+					camera.setDisplayOrientation(result);
+					camera.startPreview();
+				}
+				lastRotation = rotation;
 			}
 		}
 

@@ -40,7 +40,7 @@ public class ZBarScannerActivity extends Activity implements ZBarConstants, Scan
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mCamera.open(this);
+		mCamera.open(getApplicationContext());
 		mPreview.setCamera(mCamera);
 		mCamera.setPreviewCallback(mScanner.getCameraPreviewCallback());
 	}
