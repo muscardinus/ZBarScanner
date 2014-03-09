@@ -41,6 +41,7 @@ public class CameraWrapper {
 	int targetHeight;
 
 	private boolean previewStarted;
+	private boolean autofocusRunning;
 
 	public CameraWrapper(int id) {
 		this.id = id;
@@ -129,6 +130,7 @@ public class CameraWrapper {
 			fixCameraDisplayOrientation();
 			if (camera != null) {
 				previewStarted = true;
+				autofocusRunning = true;
 
 				try {
 					camera.startPreview();
@@ -153,13 +155,14 @@ public class CameraWrapper {
 	}
 
 	synchronized void autoFocus(AutoFocusCallback cb) {
-		if (camera != null) {
+		if (camera != null && autofocusRunning) {
 			camera.autoFocus(cb);
 		}
 	}
 
 	synchronized void cancelAutoFocus() {
 		if (camera != null) {
+			autofocusRunning = false;
 			camera.cancelAutoFocus();
 		}
 	}
